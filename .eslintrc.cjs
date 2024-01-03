@@ -1,12 +1,20 @@
 module.exports = {
-  env: { browser: true, es2020: true, node: true },
+  env: { es2020: true, node: true },
   extends: [
     'eslint:recommended'
   ],
-  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  parser: '@babel/eslint-parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    requireConfigFile: false,
+    allowImportExportEverywhere: true
+  },
+  plugins: [],
   rules: {
-
-    //'no-console': 1,
+    // Common
+    'no-console': 1,
+    'no-extra-boolean-cast': 0,
     'no-lonely-if': 1,
     'no-unused-vars': 1,
     'no-trailing-spaces': 1,

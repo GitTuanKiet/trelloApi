@@ -1,15 +1,40 @@
+/* eslint-disable no-console */
 import express from 'express'
+import { connectMongo, disconnectMongo } from '~/config/mongodb'
+import exitHook from 'async-exit-hook'
+import { ENV } from '~/config/environment'
 
-const app = express()
+const { PORT, HOST, AUTHOR } = ENV
 
-const PORT = 3000
-const HOST = 'localhost'
+const START_SERVER = () => {
+  const app = express()
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello World!</h1>')
-})
+  app.use(express.json())
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}/`)
-})
+  app.use(require('~/config/cors'))
+
+  app.use('/v1', require('~/routes/v1'))
+
+  app.use(require('~/middlewares/errorHandler'))
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Server started at http://${HOST}:${PORT}`)
+    console.log(`Author: ${AUTHOR}`)
+  })
+
+  exitHook(() => {
+    disconnectMongo()
+  })
+}
+
+(async () => {
+  try {
+    await connectMongo()
+    START_SERVER()
+  } catch (error) {
+    console.error('Error starting server: ', error)
+    process.exit(1)
+  }
+})()
+
 
