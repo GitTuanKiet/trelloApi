@@ -4,7 +4,7 @@ import { connectMongo, disconnectMongo } from '~/config/mongodb'
 import exitHook from 'async-exit-hook'
 import { ENV } from '~/config/environment'
 
-const { PORT, HOST, AUTHOR } = ENV
+const { PORT, HOST, AUTHOR, NODE_ENV } = ENV
 
 const START_SERVER = () => {
   const app = express()
@@ -17,10 +17,18 @@ const START_SERVER = () => {
 
   app.use(require('~/middlewares/errorHandler'))
 
-  app.listen(PORT, HOST, () => {
-    console.log(`Server started at http://${HOST}:${PORT}`)
-    console.log(`Author: ${AUTHOR}`)
-  })
+  if (NODE_ENV === 'development') {
+    app.listen(PORT, HOST, () => {
+      console.log(`Server started at http://${HOST}:${PORT}`)
+      console.log(`Author: ${AUTHOR}`)
+    })
+  }
+  if (NODE_ENV === 'production') {
+    app.listen(() => {
+      console.log(`Server started. NODE_ENV: ${NODE_ENV}`)
+      console.log(`Author: ${AUTHOR}`)
+    })
+  }
 
   exitHook(() => {
     disconnectMongo()
