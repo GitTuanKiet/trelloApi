@@ -25,7 +25,7 @@ const START_SERVER = () => {
   }
   if (NODE_ENV === 'production') {
     app.listen(() => {
-      console.log(`Server started. NODE_ENV: ${NODE_ENV}`)
+      console.log(`Server started. NODE_ENV: ${NODE_ENV}`, `PORT: ${PORT}`)
       console.log(`Author: ${AUTHOR}`)
     })
   }
