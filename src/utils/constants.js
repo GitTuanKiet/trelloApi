@@ -1,9 +1,8 @@
 export const DOMAINS = [
-  // 'http://localhost:5173'
-  'https://trello-9b2zz81tt-vertuankiets-projects-884416e5.vercel.app',
+  'http://localhost:5173',
   'https://trello-web-git-master-vertuankiets-projects-884416e5.vercel.app',
-  'https://trello-9b2zz81tt-vertuankiets-projects-884416e5.vercel.app',
-  'https://trello-ji3wp95nb-vertuankiets-projects-884416e5.vercel.app',
+  'https://trello-web-vertuankiets-projects-884416e5.vercel.app',
+  'https://trello-gf26y2qqk-vertuankiets-projects-884416e5.vercel.app',
   'https://trello-web-eight.vercel.app'
 ]
 
