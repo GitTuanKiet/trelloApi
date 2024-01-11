@@ -3,6 +3,8 @@ import { cardService } from '~/services/cardService'
 
 const CreateCardController = async (req, res, next) => {
   try {
+    if (req.file) req.body.cover = req.file.buffer
+
     const createCardService = await cardService.createCardService(req.body)
 
     return res.status(StatusCodes.CREATED).json(createCardService)

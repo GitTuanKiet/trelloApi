@@ -75,7 +75,8 @@ const schemaCreateCard = Joi.object({
   columnId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
 
   title:Joi.string().required().min(3).max(33).trim().strict(),
-  description:Joi.string().min(6).max(255).trim().strict(),
+  description: Joi.string().min(6).max(255).trim().strict(),
+  cover:Joi.binary(),
 
   createAt:Joi.date().timestamp('javascript').default(Date.now()),
   updateAt:Joi.date().timestamp('javascript').default(null),

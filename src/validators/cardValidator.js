@@ -13,8 +13,15 @@ const createCardValidation = async (req, res, next) => {
         'string.min': 'Title must be at least 3 characters long',
         'string.max': 'Title must be at most 33 characters long',
         'string.base': 'Title must be a string'
+      }),
+      description: Joi.string().min(6).max(255).trim().strict().messages({
+        'string.empty': 'Description is required',
+        'string.min': 'Description must be at least 6 characters long',
+        'string.max': 'Description must be at most 255 characters long',
+        'string.base': 'Description must be a string'
       })
     })
+
     await schemaCreateCard.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {
