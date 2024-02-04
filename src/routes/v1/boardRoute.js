@@ -5,12 +5,12 @@ import { boardController } from '~/controllers/boardController'
 const router = express.Router()
 
 router.route('/create')
-  .post(boardValidator.createBoardValidation, boardController.CreateBoardController)
+  .post(require('~/middlewares/verifyJWT'), boardValidator.createBoardValidation, boardController.CreateBoardController)
 
 router.route('/:id')
   .get(boardController.getDetailsBoardController)
   .put(boardValidator.updateBoardValidation, boardController.UpdateBoardController)
-  .delete(boardController.DestroyBoardController)
+  .delete(require('~/middlewares/verifyJWT'), boardController.DestroyBoardController)
 
 router.route('/move')
   .post(boardValidator.setMoveCardWithoutColumnValidator, boardController.setMoveCardWithoutColumnController)

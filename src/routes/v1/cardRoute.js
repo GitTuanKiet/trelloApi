@@ -13,6 +13,6 @@ router.route('/create')
 
 router.route('/:id')
   .put(cardValidator.updateCardValidation, cardController.UpdateCardController)
-  .delete(cardController.DestroyCardController)
+  .delete(require('~/middlewares/verifyJWT'), cardController.DestroyCardController)
 
 module.exports = router

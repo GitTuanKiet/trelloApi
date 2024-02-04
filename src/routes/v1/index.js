@@ -9,6 +9,7 @@ router.get('/status', (req, res) => {
   })
 })
 
+router.use('/auth', require('./authRoute'))
 router.use('/boards', require('./boardRoute'))
 router.use('/columns', require('./columnRoute'))
 router.use('/cards', require('./cardRoute'))

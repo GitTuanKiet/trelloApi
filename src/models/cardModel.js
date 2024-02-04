@@ -4,7 +4,7 @@ import { OBJECT_ID_REGEX, OBJECT_ID_MESSAGE } from '~/utils/constants'
 import { getMongo } from '~/config/mongodb'
 import { fixObjectId } from '~/utils/formatters'
 
-const NameCardColection = 'cards'
+const NameCardCollection = 'cards'
 
 const validateCard = async (data) => {
   try {
@@ -16,7 +16,7 @@ const validateCard = async (data) => {
 
 const findOneById = async (id) => {
   try {
-    return await getMongo().collection(NameCardColection).findOne({ _id: fixObjectId(id) })
+    return await getMongo().collection(NameCardCollection).findOne({ _id: fixObjectId(id) })
   } catch (error) {
     throw error
   }
@@ -27,7 +27,7 @@ const createCard = async (data) => {
     const validatedData = await validateCard(data)
     validatedData.boardId = fixObjectId(validatedData.boardId)
     validatedData.columnId = fixObjectId(validatedData.columnId)
-    return await getMongo().collection(NameCardColection).insertOne(validatedData)
+    return await getMongo().collection(NameCardCollection).insertOne(validatedData)
   } catch (error) {
     throw error
   }
@@ -42,7 +42,7 @@ const updateCard = async (id, data) => {
     if (data.columnId) {
       data.columnId = fixObjectId(data.columnId)
     }
-    return await getMongo().collection(NameCardColection).findOneAndUpdate(
+    return await getMongo().collection(NameCardCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
       { $set: data },
       { returnDocument: 'after' }
@@ -54,7 +54,15 @@ const updateCard = async (id, data) => {
 
 const destroyCardsByColumnId = async (columnId) => {
   try {
-    return await getMongo().collection(NameCardColection).deleteMany({ columnId: fixObjectId(columnId) })
+    return await getMongo().collection(NameCardCollection).deleteMany({ columnId: fixObjectId(columnId) })
+  } catch (error) {
+    throw error
+  }
+}
+
+const destroyCardByBoardId = async (boardId) => {
+  try {
+    return await getMongo().collection(NameCardCollection).deleteMany({ boardId: fixObjectId(boardId) })
   } catch (error) {
     throw error
   }
@@ -62,12 +70,13 @@ const destroyCardsByColumnId = async (columnId) => {
 
 
 export const CardModel = {
-  NameCardColection,
+  NameCardCollection,
   schemaCreateCard,
   createCard,
   updateCard,
   findOneById,
-  destroyCardsByColumnId
+  destroyCardsByColumnId,
+  destroyCardByBoardId
 }
 
 const schemaCreateCard = Joi.object({

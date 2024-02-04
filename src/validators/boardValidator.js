@@ -18,7 +18,7 @@ const createBoardValidation = async (req, res, next) => {
         'string.max': 'Description must be at most 255 characters long',
         'string.base': 'Description must be a string'
       }),
-      type: Joi.string().required().valid('public', 'private').default('public').messages({
+      type: Joi.string().valid('public', 'private').default('public').messages({
         'string.empty': 'Type is required',
         'any.only': 'Type must be public or private',
         'string.base': 'Type must be a string'

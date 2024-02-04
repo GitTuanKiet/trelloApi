@@ -27,6 +27,7 @@ const findOneById = async (id) => {
 const createBoard = async (data) => {
   try {
     const validatedData = await validateCreate(data)
+    validatedData.userId = fixObjectId(validatedData.userId)
     return await getMongo().collection(NameBoardCollection).insertOne(validatedData)
   } catch (error) {
     throw error
@@ -69,9 +70,17 @@ const getDetailsBoard = async (id) => {
     const result = await getMongo().collection(NameBoardCollection).aggregate([
       { $match: { _id: fixObjectId(id), _destroy: false } },
       { $lookup: { from: ColumnModel.NameColumnCollection, localField: '_id', foreignField: 'boardId', as: ColumnModel.NameColumnCollection } },
-      { $lookup: { from: CardModel.NameCardColection, localField: '_id', foreignField: 'boardId', as: CardModel.NameCardColection } }
+      { $lookup: { from: CardModel.NameCardCollection, localField: '_id', foreignField: 'boardId', as: CardModel.NameCardCollection } }
     ]).toArray()
     return result[0]
+  } catch (error) {
+    throw error
+  }
+}
+
+const destroyBoard = async (id) => {
+  try {
+    return await getMongo().collection(NameBoardCollection).deleteOne({ _id: fixObjectId(id) })
   } catch (error) {
     throw error
   }
@@ -85,14 +94,17 @@ export const BoardModel = {
   getDetailsBoard,
   findOneById,
   pushColumnOrderIds,
-  pullColumnOrderIds
+  pullColumnOrderIds,
+  destroyBoard
 }
 
 const schemaBoard = Joi.object({
   title:Joi.string().required().min(3).max(33).trim().strict(),
   description:Joi.string().required().min(6).max(255).trim().strict(),
   slug:Joi.string().required().min(3).max(66).trim().strict(),
-  type:Joi.string().required().valid('public', 'private').default('public'),
+  type: Joi.string().valid('public', 'private').default('public'),
+
+  userId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
 
   columnOrderIds:Joi.array().items(
     Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)

@@ -76,6 +76,14 @@ const pullCardOrderIds = async (id, cardId) => {
   }
 }
 
+const destroyColumnByBoardId = async (boardId) => {
+  try {
+    return await getMongo().collection(NameColumnCollection).deleteMany({ boardId: fixObjectId(boardId) })
+  } catch (error) {
+    throw error
+  }
+}
+
 export const ColumnModel = {
   NameColumnCollection,
   schemaCreateColumn,
@@ -84,7 +92,8 @@ export const ColumnModel = {
   destroyColumn,
   findOneById,
   pushCardOrderIds,
-  pullCardOrderIds
+  pullCardOrderIds,
+  destroyColumnByBoardId
 }
 
 const schemaCreateColumn = Joi.object({

@@ -9,6 +9,6 @@ router.route('/create')
 
 router.route('/:id')
   .put(columnValidator.updateColumnValidation, columnController.UpdateColumnController)
-  .delete(columnValidator.deleteColumnValidation, columnController.DestroyColumnController)
+  .delete(require('~/middlewares/verifyJWT'), columnValidator.deleteColumnValidation, columnController.DestroyColumnController)
 
 module.exports = router

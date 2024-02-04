@@ -3,17 +3,21 @@ import { slugify } from '~/utils/formatters'
 import { BoardModel } from '~/models/boardModel'
 import { ColumnModel } from '~/models/columnModel'
 import { CardModel } from '~/models/cardModel'
+import { AuthModel } from '~/models/authModel'
 
 const InvalidBoard = ['_id', 'createAt']
 
-const createBoardService = async (data) => {
+const createBoardService = async (id, data) => {
   try {
     const newBoard = {
+      userId:id,
       ...data,
       slug:slugify(data.title)
     }
     const created = await BoardModel.createBoard(newBoard)
-    return await BoardModel.findOneById(created.insertedId)
+    await AuthModel.PushBoardOwnerIds(id, created.insertedId)
+    const board = await BoardModel.findOneById(created.insertedId)
+    return { _id: board._id, title: board.title, slug: board.slug }
   } catch (error) {
     throw error
   }
@@ -42,9 +46,26 @@ const updateBoardService = async (id, data) => {
   }
 }
 
-const destroyBoardService = async (id) => {
+const destroyBoardService = async (userId, boardId) => {
   try {
-    return await BoardModel.destroyBoard(id)
+    const board = await BoardModel.findOneById(boardId)
+
+    if (!board) {
+      throw new Error('Board not found')
+    }
+
+    if (!board.userId.equals(userId)) {
+      throw new Error('Unauthorized')
+    }
+
+    const authPromise = AuthModel.PullBoardOwnerIds(userId, boardId)
+    const columnPromise = ColumnModel.destroyColumnByBoardId(boardId)
+    const cardPromise = CardModel.destroyCardByBoardId(boardId)
+    const destroy = BoardModel.destroyBoard(boardId)
+
+    await Promise.all([authPromise, columnPromise, cardPromise, destroy])
+
+    return { resultDelete: 'Board deleted' }
   } catch (error) {
     throw error
   }
