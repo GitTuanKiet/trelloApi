@@ -25,6 +25,7 @@ const findOneById = async (id) => {
 const createCard = async (data) => {
   try {
     const validatedData = await validateCard(data)
+    validatedData.userId = fixObjectId(validatedData.userId)
     validatedData.boardId = fixObjectId(validatedData.boardId)
     validatedData.columnId = fixObjectId(validatedData.columnId)
     return await getMongo().collection(NameCardCollection).insertOne(validatedData)
@@ -35,13 +36,10 @@ const createCard = async (data) => {
 
 
 const updateCard = async (id, data) => {
+  if (data.userId) data.userId = fixObjectId(data.userId)
+  if (data.boardId) data.boardId = fixObjectId(data.boardId)
+  if (data.columnId) data.columnId = fixObjectId(data.columnId)
   try {
-    if (data.boardId) {
-      data.boardId = fixObjectId(data.boardId)
-    }
-    if (data.columnId) {
-      data.columnId = fixObjectId(data.columnId)
-    }
     return await getMongo().collection(NameCardCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
       { $set: data },
@@ -80,6 +78,7 @@ export const CardModel = {
 }
 
 const schemaCreateCard = Joi.object({
+  userId: Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
   boardId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
   columnId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
 

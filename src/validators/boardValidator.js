@@ -6,24 +6,10 @@ import ApiError from '~/utils/ApiError'
 const createBoardValidation = async (req, res, next) => {
   try {
     const schemaCreateBoard = Joi.object({
-      title: Joi.string().required().min(3).max(33).trim().strict().messages({
-        'string.empty': 'Title is required',
-        'string.min': 'Title must be at least 3 characters long',
-        'string.max': 'Title must be at most 33 characters long',
-        'string.base': 'Title must be a string'
-      }),
-      description: Joi.string().required().min(6).max(255).trim().strict().messages({
-        'string.empty': 'Description is required',
-        'string.min': 'Description must be at least 6 characters long',
-        'string.max': 'Description must be at most 255 characters long',
-        'string.base': 'Description must be a string'
-      }),
-      type: Joi.string().valid('public', 'private').default('public').messages({
-        'string.empty': 'Type is required',
-        'any.only': 'Type must be public or private',
-        'string.base': 'Type must be a string'
-      })
+      title: Joi.string().required().min(3).max(33).trim().strict(),
+      description: Joi.string().required().min(6).max(255).trim().strict()
     })
+
     await schemaCreateBoard.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {
@@ -34,20 +20,8 @@ const createBoardValidation = async (req, res, next) => {
 const updateBoardValidation = async (req, res, next) => {
   try {
     const schemaUpdateBoard = Joi.object({
-      title: Joi.string().min(3).max(33).trim().strict().messages({
-        'string.min': 'Title must be at least 3 characters long',
-        'string.max': 'Title must be at most 33 characters long',
-        'string.base': 'Title must be a string'
-      }),
-      description: Joi.string().min(6).max(255).trim().strict().messages({
-        'string.min': 'Description must be at least 6 characters long',
-        'string.max': 'Description must be at most 255 characters long',
-        'string.base': 'Description must be a string'
-      }),
-      type: Joi.string().valid('public', 'private').messages({
-        'any.only': 'Type must be public or private',
-        'string.base': 'Type must be a string'
-      }),
+      title: Joi.string().min(3).max(33).trim().strict(),
+      description: Joi.string().min(6).max(255).trim().strict(),
       columnOrderIds:Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE))
     })
     await schemaUpdateBoard.validateAsync(req.body, { abortEarly: false, allowUnknown: true })

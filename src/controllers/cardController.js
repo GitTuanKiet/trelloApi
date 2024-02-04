@@ -5,7 +5,7 @@ const CreateCardController = async (req, res, next) => {
   try {
     if (req.file) req.body.cover = req.file.buffer
 
-    const createCardService = await cardService.createCardService(req.body)
+    const createCardService = await cardService.createCardService(req.user._id, req.params.id, req.body)
 
     return res.status(StatusCodes.CREATED).json(createCardService)
   } catch (error) {
@@ -15,7 +15,7 @@ const CreateCardController = async (req, res, next) => {
 
 const UpdateCardController = async (req, res, next) => {
   try {
-    const updateCardService = await cardService.updateCardService(req.params.id, req.body)
+    const updateCardService = await cardService.updateCardService(req.user._id, req.params.id, req.body)
 
     return res.status(StatusCodes.OK).json(updateCardService)
   } catch (error) {
@@ -23,18 +23,7 @@ const UpdateCardController = async (req, res, next) => {
   }
 }
 
-const DestroyCardController = async (req, res, next) => {
-  try {
-    const destroyCardService = await cardService.destroyCardService(req.params.id)
-
-    return res.status(StatusCodes.ACCEPTED).json(destroyCardService)
-  } catch (error) {
-    next(error)
-  }
-}
-
 export const cardController = {
   CreateCardController,
-  UpdateCardController,
-  DestroyCardController
+  UpdateCardController
 }

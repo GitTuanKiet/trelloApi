@@ -26,6 +26,7 @@ const createColumn = async (data) => {
   try {
     const validatedData = await validateColumn(data)
     validatedData.boardId = fixObjectId(validatedData.boardId)
+    validatedData.userId = fixObjectId(validatedData.userId)
     return await getMongo().collection(NameColumnCollection).insertOne(validatedData)
   } catch (error) {
     throw error
@@ -34,13 +35,10 @@ const createColumn = async (data) => {
 
 
 const updateColumn = async (id, data) => {
+  if (data.userId) data.userId = fixObjectId(data.userId)
+  if (data.boardId) data.boardId = fixObjectId(data.boardId)
+  if (data.cardOrderIds) data.cardOrderIds = data.cardOrderIds.map(fixObjectId)
   try {
-    if (data.boardId) {
-      data.boardId = fixObjectId(data.boardId)
-    }
-    if (data.cardOrderIds) {
-      data.cardOrderIds = data.cardOrderIds.map((item) => fixObjectId(item))
-    }
     return await getMongo().collection(NameColumnCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
       { $set: data },
@@ -97,6 +95,7 @@ export const ColumnModel = {
 }
 
 const schemaCreateColumn = Joi.object({
+  userId: Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
   boardId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
   title:Joi.string().required().min(3).max(33).trim().strict(),
 

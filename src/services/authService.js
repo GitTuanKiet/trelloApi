@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 import { ENV } from '~/config/environment'
 const { SECRET_KEY, EXPIRES_IN } = ENV
 
-const InvalidAuth = ['_id', 'password', 'status', 'createAt', '_destroy']
+const InvalidAuth = ['_id', 'password', 'createAt', '_destroy']
 
 export class AuthService {
   static async registerService(data) {
@@ -18,7 +18,7 @@ export class AuthService {
       const hashPassword = await bcrypt.hash(password, 10)
       const dataCreate = { ...data, password: hashPassword }
       const result = await AuthModel.createAuth(dataCreate)
-      const token = Jwt.sign({ id: result.insertedId }, SECRET_KEY, { expiresIn: EXPIRES_IN })
+      const token = Jwt.sign({ _id: result.insertedId }, SECRET_KEY, { expiresIn: EXPIRES_IN })
       const user = await AuthModel.findOneById(result.insertedId)
       InvalidAuth.forEach((item) => delete user[item])
       return { token, user }
@@ -39,7 +39,7 @@ export class AuthService {
       if (!isMatch) {
         throw new Error('Password is incorrect')
       }
-      const token = Jwt.sign({ id: check._id }, SECRET_KEY, { expiresIn: EXPIRES_IN })
+      const token = Jwt.sign({ _id: check._id }, SECRET_KEY, { expiresIn: EXPIRES_IN })
       const user = await AuthModel.findOneByEmail(email)
       InvalidAuth.forEach((item) => delete user[item])
       return { token, user }
@@ -56,24 +56,14 @@ export class AuthService {
       if (!check) {
         throw new Error('Email not found')
       }
-      const token = Jwt.sign({ id: check._id }, SECRET_KEY, { expiresIn: EXPIRES_IN })
+      const token = Jwt.sign({ _id: check._id }, SECRET_KEY, { expiresIn: EXPIRES_IN })
       const newPassword = '123456'
       const hashPassword = await bcrypt.hash(newPassword, 10)
-      await AuthModel.updateAuth(check._id, { password: hashPassword, status: 'active' })
+      await AuthModel.updateAuth(check._id, { password: hashPassword })
       const user = await AuthModel.findOneByEmail(email)
       InvalidAuth.forEach((item) => delete user[item])
       user.password = newPassword
       return { token, user }
-    }
-    catch (error) {
-      throw error
-    }
-  }
-
-  static async logoutService(id) {
-    try {
-      await AuthModel.updateAuth(id, { status: 'inactive' })
-      return { message: 'Logout success' }
     }
     catch (error) {
       throw error
@@ -118,8 +108,9 @@ export class AuthService {
 
   static async getListBoardService(id) {
     try {
-      const user = await AuthModel.fetchBoardOwnerIds(id)
-      return user.listBoard
+      const data = await AuthModel.fetchBoardOwnerIds(id)
+      if (!data) return []
+      return data.listBoard
     } catch (error) {
       throw error
     }

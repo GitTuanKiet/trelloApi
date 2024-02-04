@@ -6,20 +6,10 @@ import ApiError from '~/utils/ApiError'
 const createCardValidation = async (req, res, next) => {
   try {
     const schemaCreateCard = Joi.object({
-      boardId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
       columnId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
-      title: Joi.string().required().min(3).max(33).trim().strict().messages({
-        'string.empty': 'Title is required',
-        'string.min': 'Title must be at least 3 characters long',
-        'string.max': 'Title must be at most 33 characters long',
-        'string.base': 'Title must be a string'
-      }),
-      description: Joi.string().min(6).max(255).trim().strict().messages({
-        'string.empty': 'Description is required',
-        'string.min': 'Description must be at least 6 characters long',
-        'string.max': 'Description must be at most 255 characters long',
-        'string.base': 'Description must be a string'
-      })
+      title: Joi.string().required().min(3).max(33).trim().strict(),
+      description: Joi.string().min(6).max(255).trim().strict(),
+      cover:Joi.binary()
     })
 
     await schemaCreateCard.validateAsync(req.body, { abortEarly: false })
@@ -32,18 +22,11 @@ const createCardValidation = async (req, res, next) => {
 const updateCardValidation = async (req, res, next) => {
   try {
     const schemaUpdateCard = Joi.object({
-      boardId:Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
-      columnId:Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
-      title: Joi.string().min(3).max(33).trim().strict().messages({
-        'string.min': 'Title must be at least 3 characters long',
-        'string.max': 'Title must be at most 33 characters long',
-        'string.base': 'Title must be a string'
-      }),
-      description: Joi.string().min(6).max(255).trim().strict().messages({
-        'string.min': 'Description must be at least 6 characters long',
-        'string.max': 'Description must be at most 255 characters long',
-        'string.base': 'Description must be a string'
-      })
+      _id:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
+      columnId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
+      title: Joi.string().min(3).max(33).trim().strict(),
+      description: Joi.string().min(6).max(255).trim().strict(),
+      cover:Joi.binary()
     })
     await schemaUpdateCard.validateAsync(req.body, { abortEarly: false, allowUnknown: true })
     next()

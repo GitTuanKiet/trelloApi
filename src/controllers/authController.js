@@ -1,14 +1,11 @@
 import { StatusCodes } from 'http-status-codes'
 import { AuthService } from '~/services/authService'
-import Jwt from 'jsonwebtoken'
-import { ENV } from '~/config/environment'
-const { SECRET_KEY, EXPIRES_IN } = ENV
 
 const loginController = async (req, res, next) => {
   try {
     if (req.user) {
-      const token = Jwt.sign({ id: req.user._id }, SECRET_KEY, { expiresIn: EXPIRES_IN })
-      return res.status(StatusCodes.OK).json({ token })
+      delete req.user
+      return res.status(StatusCodes.OK).json({ token: null, user: null })
     }
 
     const loginData = await AuthService.loginService(req.body)
@@ -21,6 +18,11 @@ const loginController = async (req, res, next) => {
 
 const registerController = async (req, res, next) => {
   try {
+    if (req.user) {
+      delete req.user
+      return res.status(StatusCodes.OK).json({ token: null, user: null })
+    }
+
     const registerData = await AuthService.registerService(req.body)
 
     return res.status(StatusCodes.CREATED).json(registerData)
@@ -31,7 +33,12 @@ const registerController = async (req, res, next) => {
 
 const forgotPasswordController = async (req, res, next) => {
   try {
-    const forgotPasswordData= await AuthService.forgotPasswordService(req.body)
+    if (req.user) {
+      delete req.user
+      return res.status(StatusCodes.OK).json({ token: null, user: null })
+    }
+
+    const forgotPasswordData = await AuthService.forgotPasswordService(req.body)
 
     return res.status(StatusCodes.OK).json(forgotPasswordData)
   } catch (error) {
@@ -41,12 +48,8 @@ const forgotPasswordController = async (req, res, next) => {
 
 const logoutController = async (req, res, next) => {
   try {
-    if (req.user) {
-      await AuthService.logoutService(req.user.id)
-      return res.status(StatusCodes.OK).json({ message: 'Logout successfully' })
-    }
-
-    return res.status(StatusCodes.BAD_REQUEST).json({ message: 'User ID is required' })
+    delete req.user
+    return res.status(StatusCodes.OK).json({ token: null, user: null })
   } catch (error) {
     next(error)
   }
@@ -54,7 +57,11 @@ const logoutController = async (req, res, next) => {
 
 const updateController = async (req, res, next) => {
   try {
-    const updateData = await AuthService.updateAuthService(req.user.id, req.body)
+    const updateData = await AuthService.updateAuthService(req.user._id, req.body)
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(StatusCodes.OK).json(req.body)
+    }
 
     return res.status(StatusCodes.OK).json(updateData)
   } catch (error) {
@@ -64,7 +71,7 @@ const updateController = async (req, res, next) => {
 
 const updatePasswordController = async (req, res, next) => {
   try {
-    const updatePasswordData = await AuthService.updatePasswordService(req.user.id, req.body)
+    const updatePasswordData = await AuthService.updatePasswordService(req.user._id, req.body)
 
     return res.status(StatusCodes.OK).json(updatePasswordData)
   } catch (error) {
@@ -74,7 +81,7 @@ const updatePasswordController = async (req, res, next) => {
 
 const getListBoardController = async (req, res, next) => {
   try {
-    const listBoardData = await AuthService.getListBoardService(req.user.id)
+    const listBoardData = await AuthService.getListBoardService(req.user._id)
 
     return res.status(StatusCodes.OK).json(listBoardData)
   } catch (error) {

@@ -32,7 +32,6 @@ const schemaAuth = Joi.object({
   }),
 
   boardOwnerIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
-  status: Joi.equal('active', 'inactive').default('active'),
 
   createAt: Joi.date().timestamp().default(Date.now()),
   updateAt: Joi.date().timestamp().default(null),
@@ -74,6 +73,7 @@ const findOneByEmail = async (email) => {
 }
 
 const updateAuth = async (id, data) => {
+  if (data.boardOwnerIds) data.boardOwnerIds = data.boardOwnerIds.map(fixObjectId)
   try {
     return await getMongo().collection(NameAuthCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
@@ -143,7 +143,7 @@ const fetchBoardOwnerIds = async (id) => {
       }
     ]).toArray()
 
-    return result[0]
+    return result[0] || null
   }
   catch (error) {
     throw error

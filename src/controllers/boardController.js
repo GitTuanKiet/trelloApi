@@ -3,7 +3,7 @@ import { boardService } from '~/services/boardService'
 
 const CreateBoardController = async (req, res, next) => {
   try {
-    const createBoardService = await boardService.createBoardService(req.user.id, req.body)
+    const createBoardService = await boardService.createBoardService(req.user._id, req.body)
 
     return res.status(StatusCodes.CREATED).json(createBoardService)
   } catch (error) {
@@ -13,7 +13,7 @@ const CreateBoardController = async (req, res, next) => {
 
 const UpdateBoardController = async (req, res, next) => {
   try {
-    const updateBoardService = await boardService.updateBoardService(req.params.id, req.body)
+    const updateBoardService = await boardService.updateBoardService(req.user._id, req.params.id, req.body)
 
     return res.status(StatusCodes.OK).json(updateBoardService)
   } catch (error) {
@@ -23,7 +23,7 @@ const UpdateBoardController = async (req, res, next) => {
 
 const DestroyBoardController = async (req, res, next) => {
   try {
-    const destroyBoardService = await boardService.destroyBoardService(req.user.id, req.params.id)
+    const destroyBoardService = await boardService.destroyBoardService(req.user._id, req.params.id)
 
     return res.status(StatusCodes.ACCEPTED).json(destroyBoardService)
   } catch (error) {

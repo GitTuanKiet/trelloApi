@@ -4,11 +4,11 @@ import { columnController } from '~/controllers/columnController'
 
 const router = express.Router()
 
-router.route('/create')
+router.route('/create/:id')
   .post(columnValidator.createColumnValidation, columnController.CreateColumnController)
 
 router.route('/:id')
   .put(columnValidator.updateColumnValidation, columnController.UpdateColumnController)
-  .delete(require('~/middlewares/verifyJWT'), columnValidator.deleteColumnValidation, columnController.DestroyColumnController)
+  .delete(columnController.DestroyColumnController)
 
 module.exports = router

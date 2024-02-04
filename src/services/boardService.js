@@ -7,40 +7,42 @@ import { AuthModel } from '~/models/authModel'
 
 const InvalidBoard = ['_id', 'createAt']
 
-const createBoardService = async (id, data) => {
+const createBoardService = async (userId, data) => {
+  const newBoard = {
+    userId:userId,
+    ...data,
+    slug:slugify(data.title)
+  }
   try {
-    const newBoard = {
-      userId:id,
-      ...data,
-      slug:slugify(data.title)
-    }
     const created = await BoardModel.createBoard(newBoard)
-    await AuthModel.PushBoardOwnerIds(id, created.insertedId)
-    const board = await BoardModel.findOneById(created.insertedId)
-    return { _id: board._id, title: board.title, slug: board.slug }
+    const [, board] = await Promise.all([
+      AuthModel.PushBoardOwnerIds(userId, created.insertedId),
+      BoardModel.findOneById(created.insertedId)])
+    return board
   } catch (error) {
     throw error
   }
 }
 
-const updateBoardService = async (id, data) => {
+const updateBoardService = async (userId, boardId, data) => {
+  for (const key of Object.keys(data)) {
+    if (InvalidBoard.includes(key)) {
+      delete data[key]
+    }
+  }
+
+  if (data.title) {
+    data.slug = slugify(data.title)
+  }
+
+  const editBoard = {
+    userId: userId,
+    ...data,
+    updateAt:Date.now()
+  }
+
   try {
-    for (const key of Object.keys(data)) {
-      if (InvalidBoard.includes(key)) {
-        delete data[key]
-      }
-    }
-
-    if (data?.title) {
-      data.slug = slugify(data.title)
-    }
-
-    const editBoard = {
-      ...data,
-      updateAt:Date.now()
-    }
-
-    return await BoardModel.updateBoard(id, editBoard)
+    return await BoardModel.updateBoard(boardId, editBoard)
   } catch (error) {
     throw error
   }
@@ -63,9 +65,9 @@ const destroyBoardService = async (userId, boardId) => {
     const cardPromise = CardModel.destroyCardByBoardId(boardId)
     const destroy = BoardModel.destroyBoard(boardId)
 
-    await Promise.all([authPromise, columnPromise, cardPromise, destroy])
+    const [, column, card, result] = await Promise.all([authPromise, columnPromise, cardPromise, destroy])
 
-    return { resultDelete: 'Board deleted' }
+    return { resultDeleted: 'Deleted '+result.deletedCount+' board, '+column.deletedCount+' columns, '+card.deletedCount+' cards' }
   } catch (error) {
     throw error
   }
@@ -96,15 +98,15 @@ const setMoveCardWithoutColumnService = async (data) => {
   try {
     const { cardId, prevColumnId, prevCardOrderIds, nextColumnId, nextCardOrderIds } = data
 
-    await CardModel.updateCard(cardId, { columnId: nextColumnId })
+    const PromiseCard = CardModel.updateCard(cardId, { columnId: nextColumnId })
 
-    await ColumnModel.updateColumn(prevColumnId, { cardOrderIds: prevCardOrderIds })
+    const PromisePrevCol = ColumnModel.updateColumn(prevColumnId, { cardOrderIds: prevCardOrderIds })
 
-    await ColumnModel.updateColumn(nextColumnId, { cardOrderIds: nextCardOrderIds })
+    const PromiseNextCol = ColumnModel.updateColumn(nextColumnId, { cardOrderIds: nextCardOrderIds })
 
-    return {
-      message : 'Move card without column successfully'
-    }
+    await Promise.all([PromiseCard, PromisePrevCol, PromiseNextCol])
+
+    return { result: 'Card moved' }
   } catch (error) {
     throw error
   }

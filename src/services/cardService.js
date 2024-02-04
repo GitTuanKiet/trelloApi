@@ -2,40 +2,49 @@
 import { CardModel } from '~/models/cardModel'
 import { ColumnModel } from '~/models/columnModel'
 
-const InvalidCard = ['_id', 'createAt', 'boardId']
+const InvalidCard = ['createAt', 'boardId']
 
-const createCardService = async (data) => {
+const createCardService = async (userId, boardId, data) => {
+  const newCard = {
+    userId: userId,
+    boardId: boardId,
+    columnId: data.columnId,
+    ...data
+  }
+
   try {
-    const created = await CardModel.createCard(data)
-    await ColumnModel.pushCardOrderIds(data.columnId, created.insertedId)
-    return await CardModel.findOneById(created.insertedId)
+    const created = await CardModel.createCard(newCard)
+
+    const [, cardResult] = await Promise.all([
+      ColumnModel.pushCardOrderIds(data.columnId, created.insertedId),
+      CardModel.findOneById(created.insertedId)
+    ])
+
+    return cardResult
   } catch (error) {
     throw error
   }
 }
 
-const updateCardService = async (id, data) => {
-  try {
-    for (const key of Object.keys(data)) {
-      if (InvalidCard.includes(key)) {
-        delete data[key]
-      }
-    }
 
-    const editCard = {
-      ...data,
-      updateAt:Date.now()
+const updateCardService = async (userId, boardId, data) => {
+  for (const key of Object.keys(data)) {
+    if (InvalidCard.includes(key)) {
+      delete data[key]
     }
-
-    return await CardModel.updateCard(id, editCard)
-  } catch (error) {
-    throw error
   }
-}
 
-const destroyCardService = async (id) => {
+  const editCard = {
+    userId: userId,
+    boardId: boardId,
+    columnId: data.columnId,
+    ...data,
+    updateAt: Date.now()
+  }
+
   try {
-    return await CardModel.destroyCard(id)
+    delete editCard._id
+    return await CardModel.updateCard(data._id, editCard)
   } catch (error) {
     throw error
   }
@@ -43,6 +52,5 @@ const destroyCardService = async (id) => {
 
 export const cardService = {
   createCardService,
-  updateCardService,
-  destroyCardService
+  updateCardService
 }
