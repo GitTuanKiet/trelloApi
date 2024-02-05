@@ -100,7 +100,7 @@ export class AuthService {
       }
       const hashPassword = await bcrypt.hash(newPassword, 10)
       await AuthModel.updateAuth(id, { password: hashPassword })
-      return { message: 'Update password success' }
+      return { message: 'Update password success! New Password: '+ newPassword }
     } catch (error) {
       throw error
     }

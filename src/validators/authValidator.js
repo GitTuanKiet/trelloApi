@@ -49,7 +49,7 @@ const updateValidation = async (req, res, next) => {
       lastName: Joi.string().min(3).max(33).trim().strict(),
       email: Joi.string().email().trim().strict()
     })
-    await schemaUpdate.validateAsync({ ...req.body, userId: req.user._id }, { abortEarly: false })
+    await schemaUpdate.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message) )
@@ -66,7 +66,7 @@ const updatePasswordValidation = async (req, res, next) => {
       newPassword: Joi.string().required().min(6).max(33),
       confirmPassword: Joi.string().required().min(6).max(33)
     })
-    await schemaUpdatePassword.validateAsync({ ...req.body, userId: req.user._id }, { abortEarly: false })
+    await schemaUpdatePassword.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message) )
