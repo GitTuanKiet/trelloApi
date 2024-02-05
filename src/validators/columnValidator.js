@@ -29,7 +29,20 @@ const updateColumnValidation = async (req, res, next) => {
   }
 }
 
+const destroyColumnValidation = async (req, res, next) => {
+  try {
+    const schemaDestroyColumn = Joi.object({
+      _id:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)
+    })
+    await schemaDestroyColumn.validateAsync(req.body, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message) )
+  }
+}
+
 export const columnValidator = {
   createColumnValidation,
-  updateColumnValidation
+  updateColumnValidation,
+  destroyColumnValidation
 }

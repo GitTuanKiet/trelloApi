@@ -11,14 +11,14 @@ const errorHandler = (err, req, res, next) => {
   }
 
   const responseError = {
-    message: err.message || StatusCodes[err.statusCode],
+    error: err.message || StatusCodes[err.statusCode],
     status: err.statusCode,
     stack: err.stack
   }
 
   if (isProduction) delete responseError.stack
 
-  res.status(err.statusCode).json(responseError)
+  res.status(StatusCodes.OK).json(responseError)
 }
 
 module.exports = errorHandler

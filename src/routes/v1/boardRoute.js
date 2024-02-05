@@ -10,6 +10,8 @@ router.route('/create')
 router.route('/:id')
   .get(boardController.getDetailsBoardController)
   .put(boardValidator.updateBoardValidation, boardController.UpdateBoardController)
+
+router.route('/delete/:id')
   .delete(boardController.DestroyBoardController)
 
 router.route('/move')

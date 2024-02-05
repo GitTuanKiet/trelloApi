@@ -9,6 +9,8 @@ router.route('/create/:id')
 
 router.route('/:id')
   .put(columnValidator.updateColumnValidation, columnController.UpdateColumnController)
+
+router.route('/delete/:boardId&&:columnId')
   .delete(columnController.DestroyColumnController)
 
 module.exports = router

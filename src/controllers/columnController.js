@@ -23,7 +23,7 @@ const UpdateColumnController = async (req, res, next) => {
 
 const DestroyColumnController = async (req, res, next) => {
   try {
-    const destroyColumnService = await columnService.destroyColumnService(req.params.id, req.body._id)
+    const destroyColumnService = await columnService.destroyColumnService(req.params.boardId, req.params.columnId)
 
     return res.status(StatusCodes.ACCEPTED).json(destroyColumnService)
   } catch (error) {
