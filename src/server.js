@@ -3,6 +3,7 @@ import express from 'express'
 import { connectMongo, disconnectMongo } from '~/config/mongodb'
 import exitHook from 'async-exit-hook'
 import { ENV } from '~/config/environment'
+import cor from 'cors'
 
 const { PORT, HOST, AUTHOR, NODE_ENV } = ENV
 
@@ -12,6 +13,7 @@ const START_SERVER = () => {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
 
+  app.use(cor())
   app.use('/v1/uploads', express.static('uploads'))
   app.use('/v1', require('~/routes/v1/uploadRoute'))
 
