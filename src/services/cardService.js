@@ -2,7 +2,7 @@
 import { CardModel } from '~/models/cardModel'
 import { ColumnModel } from '~/models/columnModel'
 
-const InvalidCard = ['createAt', 'boardId']
+const InvalidCard = ['createAt', 'boardId', 'downloads']
 
 const createCardService = async (userId, boardId, data) => {
   const newCard = {
@@ -50,7 +50,22 @@ const updateCardService = async (userId, boardId, data) => {
   }
 }
 
+const actionCardService = async (userId, cardId, data) => {
+  try {
+    const newData = {
+      userId: userId,
+      ...data,
+      updateAt: Date.now()
+    }
+
+    return await CardModel.updateCard(cardId, newData)
+  } catch (error) {
+    throw error
+  }
+}
+
 export const cardService = {
   createCardService,
-  updateCardService
+  updateCardService,
+  actionCardService
 }

@@ -3,6 +3,8 @@ import Joi from 'joi'
 import { OBJECT_ID_REGEX, OBJECT_ID_MESSAGE } from '~/utils/constants'
 import { getMongo } from '~/config/mongodb'
 import { fixObjectId } from '~/utils/formatters'
+import fs from 'fs'
+import path from 'path'
 
 const NameCardCollection = 'cards'
 
@@ -39,6 +41,8 @@ const updateCard = async (id, data) => {
   if (data.userId) data.userId = fixObjectId(data.userId)
   if (data.boardId) data.boardId = fixObjectId(data.boardId)
   if (data.columnId) data.columnId = fixObjectId(data.columnId)
+  if (data.likes) data.likes = data.likes.map(fixObjectId)
+  if (data.favorites) data.favorites = data.favorites.map(fixObjectId)
   try {
     return await getMongo().collection(NameCardCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
@@ -52,6 +56,15 @@ const updateCard = async (id, data) => {
 
 const destroyCardsByColumnId = async (columnId) => {
   try {
+    const cards = await getMongo().collection(NameCardCollection).find(
+      { columnId: fixObjectId(columnId) },
+      { projection: { cover: 1 } }
+    ).toArray()
+
+    const unlinkPromises = cards.map(card => (card.cover && unlinkCover(card.cover)) || Promise.resolve())
+
+    await Promise.all(unlinkPromises)
+
     return await getMongo().collection(NameCardCollection).deleteMany({ columnId: fixObjectId(columnId) })
   } catch (error) {
     throw error
@@ -60,7 +73,25 @@ const destroyCardsByColumnId = async (columnId) => {
 
 const destroyCardByBoardId = async (boardId) => {
   try {
+    const cards = await getMongo().collection(NameCardCollection).find(
+      { boardId: fixObjectId(boardId) },
+      { projection: { cover: 1 } }
+    ).toArray()
+
+    const unlinkPromises = cards.map(card => (card.cover && unlinkCover(card.cover)) || Promise.resolve())
+
+    await Promise.all(unlinkPromises)
+
     return await getMongo().collection(NameCardCollection).deleteMany({ boardId: fixObjectId(boardId) })
+  } catch (error) {
+    throw error
+  }
+}
+
+const unlinkCover = async (coverPath) => {
+  try {
+    const filePath = path.join('./', coverPath)
+    await fs.promises.unlink(filePath)
   } catch (error) {
     throw error
   }
@@ -84,7 +115,11 @@ const schemaCreateCard = Joi.object({
 
   title:Joi.string().required().min(3).max(33).trim().strict(),
   description: Joi.string().min(6).max(255).trim().strict(),
-  cover:Joi.binary(),
+  cover: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/),
+
+  likes: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
+  favorites: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
+  downloads: Joi.number().default(0),
 
   createAt:Joi.date().timestamp('javascript').default(Date.now()),
   updateAt:Joi.date().timestamp('javascript').default(null),
