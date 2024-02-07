@@ -9,7 +9,7 @@ router.get('/status', (req, res) => {
   })
 })
 
-router.use('/', require('./uploadRoute'))
+
 router.use('/auth', require('./authRoute'))
 router.use(require('~/middlewares/verifyJWT'))
 router.use('/boards', require('./boardRoute'))

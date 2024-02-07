@@ -1,15 +1,13 @@
 import express from 'express'
 import path from 'path'
 import { CardModel } from '~/models/cardModel'
-import cor from 'cors'
 
 const router = express.Router()
 
 router.route('/uploads/:file')
-  .get(cor(),
-    (req, res) => {
-      res.sendFile(req.params.file, { root: 'uploads' })
-    })
+  .get((req, res) => {
+    res.sendFile(req.params.file, { root: 'uploads' })
+  })
 
 router.route('/download/:filename&&:cardId')
   .get(async (req, res) => {

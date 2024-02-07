@@ -12,9 +12,10 @@ const START_SERVER = () => {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
 
-  app.use(require('~/config/cors'))
   app.use('/v1/uploads', express.static('uploads'))
+  app.use('/v1', require('~/routes/v1/uploadRoute'))
 
+  app.use(require('~/config/cors'))
   app.use('/v1', require('~/routes/v1'))
 
   app.use(require('~/middlewares/errorHandler'))
