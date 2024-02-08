@@ -28,7 +28,7 @@ const createBoardService = async (userId, data) => {
     }
 
     const [, , board] = await Promise.all([
-      AuthModel.PushBoardOwnerIds(userId, created.insertedId),
+      AuthModel.pushBoardJoinIds(userId, created.insertedId),
       BoardModel.updateBoard(created.insertedId, { members: [userData] }),
       BoardModel.findOneById(created.insertedId)])
     return board
@@ -73,7 +73,7 @@ const destroyBoardService = async (userId, boardId) => {
       throw new Error('Unauthorized')
     }
 
-    const authPromise = AuthModel.PullBoardOwnerIds(userId, boardId)
+    const authPromise = AuthModel.pullBoardJoinIds(userId, boardId)
     const columnPromise = ColumnModel.destroyColumnByBoardId(boardId)
     const cardPromise = CardModel.destroyCardByBoardId(boardId)
     const destroy = BoardModel.destroyBoard(boardId)

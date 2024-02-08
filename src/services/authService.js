@@ -1,11 +1,12 @@
 /* eslint-disable no-useless-catch */
 import { AuthModel } from '~/models/authModel'
+import { BoardModel } from '~/models/boardModel'
 import Jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { ENV } from '~/config/environment'
 const { SECRET_KEY, EXPIRES_IN } = ENV
 
-const InvalidAuth = ['_id', 'password', 'createAt', '_destroy']
+const InvalidAuth = ['_id', 'password', 'createAt', '_destroy', 'boardJoinIds', 'updateAt']
 
 export class AuthService {
   static async registerService(data) {
@@ -70,11 +71,15 @@ export class AuthService {
     }
   }
 
-  static async updateAuthService(id, data) {
+  static async updateAuthService(userId, data) {
     try {
       InvalidAuth.forEach((item) => delete data[item])
       const newData = { ...data, updateAt: Date.now() }
-      const result = await AuthModel.updateAuth(id, newData)
+
+      const [, result] = await Promise.all([
+        BoardModel.updateBoardMember(userId, { _id: userId, ...data }),
+        AuthModel.updateAuth(userId, newData)
+      ])
       let newResult = {}
       if (result) {
         Object.keys(data).forEach((key) => {
@@ -106,9 +111,9 @@ export class AuthService {
     }
   }
 
-  static async getListBoardService(id) {
+  static async getListBoardService(userId) {
     try {
-      const data = await AuthModel.fetchBoardOwnerIds(id)
+      const data = await AuthModel.fetchBoardJoinIds(userId)
       if (!data) return []
       return data.listBoard
     } catch (error) {

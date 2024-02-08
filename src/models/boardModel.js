@@ -100,6 +100,15 @@ const getDetailsBoard = async (id) => {
   }
 }
 
+const updateBoardMember = async (userId, data) => {
+  if (data._id) data._id = fixObjectId(data._id)
+  try {
+    return await getMongo().collection(NameBoardCollection).updateOne({ 'members._id': fixObjectId(userId) }, { $set: { 'members.$': data } })
+  } catch (error) {
+    throw error
+  }
+}
+
 const destroyBoard = async (id) => {
   try {
     return await getMongo().collection(NameBoardCollection).deleteOne({ _id: fixObjectId(id) })
@@ -119,7 +128,8 @@ export const BoardModel = {
   pullColumnOrderIds,
   pushMembers,
   pullMembers,
-  destroyBoard
+  destroyBoard,
+  updateBoardMember
 }
 
 const schemaBoard = Joi.object({

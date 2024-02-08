@@ -21,10 +21,10 @@ export class UserService {
     try {
       if (board.userId === user._id) throw new Error('Can not invite board owner')
       if (userId === user._id) throw new Error('Can not invite yourself')
-      if (user.boardOwnerIds) delete user.boardOwnerIds
+      if (user.boardJoinIds) delete user.boardJoinIds
       if (board.members.find((member) => member._id === user._id)) throw new Error('User already in board')
 
-      return await BoardModel.pushMembers(board._id, user)
+      return await Promise.all([AuthModel.pushBoardJoinIds(user._id, board._id), BoardModel.pushMembers(board._id, user)])
     }
     catch (error) {
       throw error
@@ -36,7 +36,7 @@ export class UserService {
       if (userId !== board.userId) throw new Error('Only board owner can remove member')
       if (userId === user._id) throw new Error('Can not remove yourself')
 
-      return await BoardModel.pullMembers(board._id, user._id)
+      return await Promise.all([AuthModel.pullBoardJoinIds(user._id, board._id), BoardModel.pullMembers(board._id, user._id)])
     }
     catch (error) {
       throw error

@@ -32,9 +32,9 @@ const schemaAuth = Joi.object({
     'password.invalidHash': 'Password must be a valid bcrypt hash',
     'string.base': 'Password must be a string'
   }),
-  avatar: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/),
+  avatar: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/).default(null),
 
-  boardOwnerIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
+  boardJoinIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
 
   createAt: Joi.date().timestamp().default(Date.now()),
   updateAt: Joi.date().timestamp().default(null),
@@ -76,7 +76,7 @@ const findOneByEmail = async (email) => {
 }
 
 const updateAuth = async (id, data) => {
-  if (data.boardOwnerIds) data.boardOwnerIds = data.boardOwnerIds.map(fixObjectId)
+  if (data.boardJoinIds) data.boardJoinIds = data.boardJoinIds.map(fixObjectId)
   try {
     if (data.avatar) {
       const user = await findOneById(id)
@@ -107,55 +107,61 @@ const updatePassword = async (id, data) => {
   }
 }
 
-const PushBoardOwnerIds = async (id, boardId) => {
+const pushBoardJoinIds = async (id, boardId) => {
   try {
-    return await getMongo().collection(NameAuthCollection).updateOne({ _id: fixObjectId(id) }, { $push: { boardOwnerIds: fixObjectId(boardId) } })
+    return await getMongo().collection(NameAuthCollection).updateOne({ _id: fixObjectId(id) }, { $push: { boardJoinIds: fixObjectId(boardId) } })
   } catch (error) {
     throw error
   }
 }
 
-const PullBoardOwnerIds = async (id, boardId) => {
+const pullBoardJoinIds = async (id, boardId) => {
   try {
-    return await getMongo().collection(NameAuthCollection).updateOne({ _id: fixObjectId(id) }, { $pull: { boardOwnerIds: fixObjectId(boardId) } })
+    return await getMongo().collection(NameAuthCollection).updateOne({ _id: fixObjectId(id) }, { $pull: { boardJoinIds: fixObjectId(boardId) } })
   } catch (error) {
     throw error
   }
 }
 
-const fetchBoardOwnerIds = async (id) => {
+const fetchBoardJoinIds = async (userId) => {
   try {
     const result = await getMongo().collection(NameAuthCollection).aggregate([
       {
-        $match: { _id: fixObjectId(id) }
+        $match: { _id: fixObjectId(userId) }
       },
       {
         $lookup: {
           from: BoardModel.NameBoardCollection,
-          localField: '_id',
-          foreignField: 'userId',
+          let: { boardJoinIds: '$boardJoinIds' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$_id', '$$boardJoinIds']
+                }
+              }
+            },
+            {
+              $project: {
+                _id: 1,
+                title: 1,
+                slug: 1,
+                description: 1
+              }
+            }
+          ],
           as: 'boards'
         }
       },
       {
-        $unwind: '$boards'
-      },
-      {
-        $group: {
-          _id: '$_id',
-          listBoard: { $push: { _id: '$boards._id', title: '$boards.title', slug: '$boards.slug', description: '$boards.description' } }
-        }
-      },
-      {
         $project: {
-          listBoard: 1
+          listBoard: '$boards'
         }
       }
     ]).toArray()
 
     return result[0] || null
-  }
-  catch (error) {
+  } catch (error) {
     throw error
   }
 }
@@ -177,8 +183,8 @@ export const AuthModel = {
   findOneByEmail,
   updateAuth,
   updatePassword,
-  PushBoardOwnerIds,
-  PullBoardOwnerIds,
-  fetchBoardOwnerIds,
+  pushBoardJoinIds,
+  pullBoardJoinIds,
+  fetchBoardJoinIds,
   getListUser
 }
