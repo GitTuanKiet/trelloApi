@@ -6,7 +6,8 @@ import ApiError from '~/utils/ApiError'
 const createColumnValidation = async (req, res, next) => {
   try {
     const schemaCreateColumn = Joi.object({
-      title: Joi.string().required().min(3).max(33).trim().strict()
+      title: Joi.string().required().min(3).max(33).trim().strict(),
+      description: Joi.string().min(6).max(255).trim().strict()
     })
     await schemaCreateColumn.validateAsync(req.body, { abortEarly: false })
     next()
@@ -20,6 +21,7 @@ const updateColumnValidation = async (req, res, next) => {
     const schemaUpdateColumn = Joi.object({
       _id:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
       title: Joi.string().min(3).max(33).trim().strict(),
+      description: Joi.string().min(6).max(255).trim().strict(),
       cardOrderIds:Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE))
     })
     await schemaUpdateColumn.validateAsync(req.body, { abortEarly: false, allowUnknown: true })
