@@ -14,9 +14,22 @@ const createBoardService = async (userId, data) => {
     slug:slugify(data.title)
   }
   try {
-    const created = await BoardModel.createBoard(newBoard)
-    const [, board] = await Promise.all([
+    const [user, created] = await Promise.all([
+      AuthModel.findOneById(userId),
+      BoardModel.createBoard(newBoard)
+    ])
+
+    const userData = {
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar
+    }
+
+    const [, , board] = await Promise.all([
       AuthModel.PushBoardOwnerIds(userId, created.insertedId),
+      BoardModel.updateBoard(created.insertedId, { members: [userData] }),
       BoardModel.findOneById(created.insertedId)])
     return board
   } catch (error) {

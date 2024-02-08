@@ -1,4 +1,5 @@
 import Joi from 'joi'
+import path from 'path'
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '~/utils/ApiError'
 
@@ -44,10 +45,16 @@ const forgotPasswordValidation = async (req, res, next) => {
 
 const updateValidation = async (req, res, next) => {
   try {
+    if (req.file) {
+      req.body.avatar = path.join('/', req.file.path)
+    }
     const schemaUpdate = Joi.object({
       firstName: Joi.string().min(3).max(33).trim().strict(),
       lastName: Joi.string().min(3).max(33).trim().strict(),
-      email: Joi.string().email().trim().strict()
+      email: Joi.string().email().trim().strict(),
+      avatar: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/).messages({
+        'string.pattern.base': 'Định dạng đường dẫn không hợp lệ'
+      })
     })
     await schemaUpdate.validateAsync(req.body, { abortEarly: false })
     next()

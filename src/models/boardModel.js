@@ -37,6 +37,11 @@ const createBoard = async (data) => {
 const updateBoard = async (id, data) => {
   if (data.userId) data.userId = fixObjectId(data.userId)
   if (data.columnOrderIds) data.columnOrderIds = data.columnOrderIds.map(fixObjectId)
+  if (data.members) data.members = data.members.map((member) => {
+    member._id = fixObjectId(member._id)
+    return member
+  })
+
   try {
     return await getMongo().collection(NameBoardCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
@@ -51,6 +56,23 @@ const updateBoard = async (id, data) => {
 const pushColumnOrderIds = async (id, columnId) => {
   try {
     return await getMongo().collection(NameBoardCollection).updateOne({ _id: fixObjectId(id) }, { $push: { columnOrderIds: fixObjectId(columnId) } })
+  } catch (error) {
+    throw error
+  }
+}
+
+const pushMembers = async (id, member) => {
+  try {
+    if (member._id) member._id = fixObjectId(member._id)
+    return await getMongo().collection(NameBoardCollection).updateOne({ _id: fixObjectId(id) }, { $push: { members: member } })
+  } catch (error) {
+    throw error
+  }
+}
+
+const pullMembers = async (id, memberId) => {
+  try {
+    return await getMongo().collection(NameBoardCollection).updateOne({ _id: fixObjectId(id) }, { $pull: { members: { _id: fixObjectId(memberId) } } })
   } catch (error) {
     throw error
   }
@@ -95,6 +117,8 @@ export const BoardModel = {
   findOneById,
   pushColumnOrderIds,
   pullColumnOrderIds,
+  pushMembers,
+  pullMembers,
   destroyBoard
 }
 
@@ -103,7 +127,14 @@ const schemaBoard = Joi.object({
   description:Joi.string().trim().strict(),
   slug:Joi.string().required().min(3).max(66).trim().strict(),
 
-  userId:Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
+  userId: Joi.string().required().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
+  members: Joi.array().items(Joi.object({
+    _id: Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE),
+    firstName: Joi.string().min(3).max(33).trim().strict(),
+    lastName: Joi.string().min(3).max(33).trim().strict(),
+    email: Joi.string().email(),
+    avatar: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/)
+  })).default([]),
 
   columnOrderIds:Joi.array().items(
     Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)

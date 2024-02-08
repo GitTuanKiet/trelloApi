@@ -1,5 +1,7 @@
 /* eslint-disable no-useless-catch */
 import Joi from 'joi'
+import fs from 'fs'
+import path from 'path'
 import { OBJECT_ID_REGEX, OBJECT_ID_MESSAGE, isBcryptHash } from '~/utils/constants'
 import { getMongo } from '~/config/mongodb'
 import { fixObjectId } from '~/utils/formatters'
@@ -30,6 +32,7 @@ const schemaAuth = Joi.object({
     'password.invalidHash': 'Password must be a valid bcrypt hash',
     'string.base': 'Password must be a string'
   }),
+  avatar: Joi.string().pattern(/^(\/|\\)?uploads(\/|\\)?[^\s]+\.(jpg|jpeg|png|gif|svg)$/),
 
   boardOwnerIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_REGEX).messages(OBJECT_ID_MESSAGE)).default([]),
 
@@ -75,6 +78,13 @@ const findOneByEmail = async (email) => {
 const updateAuth = async (id, data) => {
   if (data.boardOwnerIds) data.boardOwnerIds = data.boardOwnerIds.map(fixObjectId)
   try {
+    if (data.avatar) {
+      const user = await findOneById(id)
+      if (user.avatar) {
+        const filePath = path.join('./', user.avatar)
+        await fs.promises.unlink(filePath)
+      }
+    }
     return await getMongo().collection(NameAuthCollection).findOneAndUpdate(
       { _id: fixObjectId(id) },
       { $set: data },
@@ -150,6 +160,15 @@ const fetchBoardOwnerIds = async (id) => {
   }
 }
 
+const getListUser = async () => {
+  try {
+    return await getMongo().collection(NameAuthCollection).find().toArray()
+  }
+  catch (error) {
+    throw error
+  }
+}
+
 export const AuthModel = {
   NameAuthCollection,
   schemaAuth,
@@ -160,5 +179,6 @@ export const AuthModel = {
   updatePassword,
   PushBoardOwnerIds,
   PullBoardOwnerIds,
-  fetchBoardOwnerIds
+  fetchBoardOwnerIds,
+  getListUser
 }
