@@ -1,6 +1,6 @@
 export const DOMAINS = [
   'http://localhost:5173',
-  'https://trello-web-bice.vercel.app',
+  'https://trello-web-tau.vercel.app',
   'https://master.d1t3njxi26pe4b.amplifyapp.com'
 ]
 
